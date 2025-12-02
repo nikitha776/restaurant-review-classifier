@@ -3,7 +3,6 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 
-# Ensure resources are downloaded (this might need to be handled carefully in production)
 try:
     nltk.data.find('corpora/stopwords')
 except LookupError:
@@ -12,51 +11,25 @@ except LookupError:
 ps = PorterStemmer()
 stop_words = set(stopwords.words('english')) - {"not"}
 
-NEGATION_TOKENS = {
-    "not", "no", "never", "n't", "none", "nobody", "nothing", "neither",
-    "nowhere", "hardly", "scarcely", "barely"
-}
-
-def mark_negation_tokens(text: str) -> str:
+def preprocess_text(text: str) -> str:
     """
-    Appends 'NOT_' to words following negation tokens until a punctuation mark is encountered.
+    Preprocesses text to match the training logic in train_model.py:
+    1. Keep only letters (remove numbers, punctuation).
+    2. Lowercase.
+    3. Remove stopwords (except 'not').
+    4. Stem using PorterStemmer.
     """
-    tokens = re.findall(r"\w+|[^\w\s]", text.lower(), re.UNICODE)
-    negated = False
-    out = []
-    for tok in tokens:
-        if tok in {'.', '!', '?', ';', ':'}:
-            negated = False
-            out.append(tok)
-        elif tok in NEGATION_TOKENS:
-            negated = True
-            out.append(tok)
-        else:
-            out.append("NOT_" + tok if negated else tok)
-    return " ".join(out)
-
-def preprocess_text_with_negation(text: str) -> str:
-    """
-    Cleans text, handles negations, removes stopwords (except negations), and stems words.
-    """
-    # Basic cleaning: allow alphanumeric, spaces, and punctuation
-    text = re.sub(r'[^a-zA-Z0-9\s\.\!\?\,\;\:\'`-]', ' ', str(text))
+    # 1. Keep only letters
+    review = re.sub('[^a-zA-Z]', ' ', str(text))
     
-    # Mark negations
-    text = mark_negation_tokens(text)
+    # 2. Lowercase
+    review = review.lower()
     
-    tokens = []
-    for tok in text.split():
-        if tok.startswith("NOT_"):
-            word = tok[4:]
-            # Check if the base word is a stop word? The original notebook logic:
-            # if word not in stop_words: tokens.append("NOT_" + ps.stem(word))
-            if word not in stop_words:
-                tokens.append("NOT_" + ps.stem(word))
-        else:
-            if tok in NEGATION_TOKENS:
-                tokens.append(tok)
-            elif tok not in stop_words:
-                tokens.append(ps.stem(tok))
+    # 3. Split
+    review = review.split()
     
-    return " ".join(tokens)
+    # 4. Stem and remove stopwords
+    review = [ps.stem(word) for word in review if word not in stop_words]
+    
+    # 5. Join
+    return ' '.join(review)

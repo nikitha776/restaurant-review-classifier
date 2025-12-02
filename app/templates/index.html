@@ -5,6 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Restaurant Review Sentiment</title>
     <link rel="stylesheet" href="/static/style.css" />
+    <style>
+      .aspects {
+        margin-top: 2rem;
+        border-top: 1px solid #eee;
+        padding-top: 1rem;
+      }
+      .aspect-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      .aspect-card {
+        background: #f9f9f9;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid #eee;
+      }
+      .aspect-card h4 {
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+        color: #333;
+        text-transform: capitalize;
+      }
+      .aspect-card ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .aspect-card li {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #eee;
+      }
+      .aspect-card li:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+      .aspect-card li.positive .pred { color: #28a745; font-weight: bold; }
+      .aspect-card li.negative .pred { color: #dc3545; font-weight: bold; }
+      .sentence { display: block; font-style: italic; margin-bottom: 0.25rem; color: #555; }
+    </style>
   </head>
   <body>
     <main class="container">
@@ -23,7 +67,7 @@
             id="review"
             name="review"
             rows="6"
-            placeholder="e.g. The pasta was perfectly cooked and the service was delightful!"
+            placeholder="e.g. The pasta was perfectly cooked but the service was slow."
             required
           >{{ result.review if result else "" }}</textarea>
           <button type="submit">Analyze sentiment</button>
@@ -31,11 +75,33 @@
 
         {% if result %}
         <div class="result">
-          <h2>Prediction</h2>
+          <h2>Overall Prediction</h2>
           <p class="badge {{ 'positive' if result.prediction == 'Liked' else 'negative' }}">
             {{ result.prediction }}
           </p>
           <p class="confidence">Confidence: {{ '%.2f' | format(result.confidence * 100) }}%</p>
+          
+          {% if result.aspects %}
+          <div class="aspects">
+            <h3>Aspect Analysis</h3>
+            <div class="aspect-grid">
+              {% for aspect, sentences in result.aspects.items() %}
+              <div class="aspect-card">
+                <h4>{{ aspect }}</h4>
+                <ul>
+                  {% for item in sentences %}
+                  <li class="{{ 'positive' if item.prediction == 'Liked' else 'negative' }}">
+                    <span class="sentence">"{{ item.sentence }}"</span>
+                    <span class="pred">{{ item.prediction }}</span>
+                    <span style="font-size: 0.8em; color: #999;">({{ '%.1f' | format(item.confidence * 100) }}%)</span>
+                  </li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
         </div>
         {% endif %}
       </section>
@@ -45,7 +111,7 @@
         <ol>
           <li>The review text is converted into TF-IDF vectors using your saved vectorizer.</li>
           <li>The Bernoulli Naive Bayes model predicts whether the review is liked or not liked.</li>
-          <li>The API returns the labeled prediction along with the model confidence.</li>
+          <li>Key aspects (food, service, speed, etc.) are extracted and analyzed individually.</li>
         </ol>
       </section>
     </main>
