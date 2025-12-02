@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Literal
+import sys
 
 import joblib
 from fastapi import FastAPI, Form, HTTPException, Request
@@ -9,6 +10,11 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+# Ensure app.text_utils can be imported
+sys.path.append(str(PROJECT_ROOT))
+
+from app.text_utils import preprocess_text_with_negation
+
 MODEL_PATH = PROJECT_ROOT / "model.pkl"
 VECTORIZER_PATH = PROJECT_ROOT / "vectorizer.pkl"
 
@@ -41,7 +47,10 @@ class PredictionResponse(BaseModel):
 
 
 def predict_label(text: str) -> PredictionResponse:
-    transformed = vectorizer.transform([text])
+    # Preprocess text BEFORE vectorization
+    preprocessed_text = preprocess_text_with_negation(text)
+    
+    transformed = vectorizer.transform([preprocessed_text])
     class_prob = model.predict_proba(transformed)[0]
     predicted_idx = int(class_prob.argmax())
     confidence = float(class_prob[predicted_idx])
@@ -79,7 +88,4 @@ def predict_from_api(payload: ReviewPayload):
 
 if __name__ == "__main__":
     import uvicorn
-    import sys
-    # Add project root to sys.path so 'app.main' module can be found by uvicorn
-    sys.path.append(str(PROJECT_ROOT))
     uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
