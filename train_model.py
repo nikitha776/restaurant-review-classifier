@@ -55,7 +55,7 @@ print(f"Accuracy: {accuracy_score(y_test, y_pred)}")
 classifier_full = BernoulliNB()
 classifier_full.fit(X, y)
 
-print(classifier_full.predict(cv.transform(["The food very bad."])))
+print(classifier_full.predict(cv.transform(["I like the food"])))
 
 # Save model and vectorizer
 with open(os.path.join(BASE_DIR, 'model.pkl'), 'wb') as f:

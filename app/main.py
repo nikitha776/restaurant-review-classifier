@@ -58,9 +58,9 @@ aspects_keywords = {
     'food': ['food','taste','flavor','dish','meal','menu','tasteful','tasty'],
     'service': ['service','staff','waiter','waitress','server','host','manager'],
     'speed': ['quick','slow','speed','time','wait','waited'],
-    'hygiene': ['hygiene','clean','dirty','sanitary','unclean','hygienic','cleanliness'],
+    'hygiene': ['hygiene','clean','dirty','sanitary','unclean','hygienic','cleanliness','neat'],
     'ambience': ['ambience','ambiance','atmosphere','music','decor','lighting'],
-    'price': ['price','cost','expensive','cheap','value','worth']
+    'price': ['price','cost','expensive','cheap','value','worth','money'],
 }
 
 aspects_regex = {
